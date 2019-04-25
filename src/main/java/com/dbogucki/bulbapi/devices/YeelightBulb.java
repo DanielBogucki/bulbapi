@@ -27,8 +27,8 @@ public class YeelightBulb extends Bulb {
         this(ip, 55443);
     }
 
-    protected Result readResult(int id) throws DeviceSocketException {
-        Result result = new NullResult();
+    protected Result readResult(int id) throws ResultException, DeviceSocketException {
+        Result result;
         String data;
         do {
             data = this.socketHandler.readLine();
@@ -37,14 +37,18 @@ public class YeelightBulb extends Bulb {
                 if (result.getResultData() == null) throw new JsonSyntaxException("Probably error result");
                 return result;
             } catch (JsonSyntaxException e) {
-                result = DataFormatter.generateResultFromJson(data, ResultType.YEELIGHT_ERROR);
-                return result;
+                try {
+                    result = DataFormatter.generateResultFromJson(data, ResultType.YEELIGHT_ERROR);
+                    return result;
+                }catch (JsonSyntaxException exception) {
+                    throw new ResultException(exception);
+                }
             }
 
         } while (true);
     }
 
-    protected Result sendCommand(Command command) throws DeviceSocketException {
+    protected Result sendCommand(Command command) throws ResultException, DeviceSocketException {
         String jsonCommand = command.toJson() + "\r\n";
         this.socketHandler.send(jsonCommand);
         return this.readResult(command.getId());
