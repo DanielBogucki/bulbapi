@@ -118,7 +118,7 @@ public class YeelightBulb extends Bulb {
         return supportedMethods;
     }
 
-    public boolean getPower() throws DeviceSocketException {
+    public boolean getPower() throws DeviceSocketException, ResultException {
         YeelightCommand command = new YeelightCommand("get_prop", "power");
         Result result = this.sendCommand(command);
         if (result.checkResult()) {
