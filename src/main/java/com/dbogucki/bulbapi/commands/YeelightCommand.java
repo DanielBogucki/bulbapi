@@ -6,14 +6,12 @@ import com.google.gson.annotations.Expose;
 public class YeelightCommand extends Command {
 
     @Expose
-    private int id;
-    @Expose
     private String method;
     @Expose
     private Object[] params;
 
     public YeelightCommand(String method, Object... params) {
-        this.id = generateId();
+        super();
         this.method = method;
         this.params = params;
     }

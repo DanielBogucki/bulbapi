@@ -12,7 +12,7 @@ public class YeelightResultFailed extends YeelightResult {
 
     @Override
     public String[] getResultData() {
-        return new String[]{error.getCode(),error.getMessage()};
+        return new String[]{error.getCode(), error.getMessage()};
     }
 
     @Override
@@ -38,7 +38,8 @@ public class YeelightResultFailed extends YeelightResult {
         @Expose
         private String message;
 
-        public YeelightErrorFailedDetails(){}
+        public YeelightErrorFailedDetails() {
+        }
 
         public String getCode() {
             return code;

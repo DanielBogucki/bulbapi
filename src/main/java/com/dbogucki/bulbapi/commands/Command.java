@@ -1,11 +1,18 @@
 package com.dbogucki.bulbapi.commands;
 
+import com.google.gson.annotations.Expose;
+
 public abstract class Command {
     protected static int ID_COMMAND = 1;
 
+    @Expose
     protected int id;
 
-    protected static int generateId() {
+    public Command(){
+        this.id = generateId();
+    }
+
+    private static int generateId() {
         return ID_COMMAND++;
     }
 
