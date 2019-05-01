@@ -5,6 +5,7 @@ import com.google.gson.annotations.Expose;
 
 public class YeelightCommand extends Command {
 
+    //TODO fix order in JSON
     @Expose
     private String method;
     @Expose
