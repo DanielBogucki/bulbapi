@@ -13,9 +13,9 @@ public abstract class Bulb {
     public abstract String getIp();
     public abstract int getPort();
 
-    protected abstract Result readResult(int id) throws DeviceSocketException, ResultException;
+    protected abstract Result readResult(int id) throws DeviceSocketException;
 
-    protected abstract Result sendCommand(Command command) throws DeviceSocketException, ResultException;
+    protected abstract Result sendCommand(Command command) throws DeviceSocketException;
 
     protected abstract Result setPower(boolean power) throws ResultException, DeviceSocketException;
 }
