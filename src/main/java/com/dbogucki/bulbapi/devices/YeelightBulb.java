@@ -21,7 +21,7 @@ public class YeelightBulb extends Bulb {
     private String[] supportedMethods;
     private boolean power;
     private int bright;
-    private int colorMode; // 1 - color mode; 2 - color temperature; 3 - HSV mode
+    private int colorMode; // 1 - RGB mode; 2 - color temperature; 3 - HSV mode
     private int colorTemperature; // valid if color_Mode is 2
     private int RGBvalue; // valid if colorMode is 1
     private int HUEvalue; // valid if colorMode is 3
@@ -66,12 +66,12 @@ public class YeelightBulb extends Bulb {
             try {
                 result = DataFormatter.generateResultFromJson(data, ResultType.YEELIGHT_OK);
                 if (result.getResultData() == null) throw new JsonSyntaxException("Probably error result");
-                return result;
+                if (result.getId() == id) return result;
             } catch (JsonSyntaxException e) {
                 try {
                     result = DataFormatter.generateResultFromJson(data, ResultType.YEELIGHT_ERROR);
-                    return result;
-                }catch (JsonSyntaxException exception) {
+                    if (result.getId() == id) return result;
+                } catch (JsonSyntaxException exception) {
                     throw new ResultException(exception);
                 }
             }
@@ -106,6 +106,21 @@ public class YeelightBulb extends Bulb {
         return result;
     }
 
+    public Result setBrightness(int value) throws ResultException, DeviceSocketException {
+        //TODO calculate value // value =
+        YeelightCommand command = new YeelightCommand("set_bright", value, YeelightEffect.SUDDEN, 500);
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) this.power = power;
+        return result;
+    }
+
+    public Result setName(String name) throws ResultException, DeviceSocketException {
+        YeelightCommand command = new YeelightCommand("set_name", name);
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) this.power = power;
+        return result;
+    }
+
     public int getId() {
         return id;
     }
@@ -128,27 +143,71 @@ public class YeelightBulb extends Bulb {
         return power;
     }
 
-    public int getBright() {
+    public int getBright() throws DeviceSocketException, ResultException {
+        YeelightCommand command = new YeelightCommand("get_prop", "bright");
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) {
+            bright = Integer.parseInt(result.getResultData()[0]);
+        }
         return bright;
     }
 
-    public int getColorMode() {
-        return colorMode;
+    public String getColorMode() throws DeviceSocketException, ResultException {
+        YeelightCommand command = new YeelightCommand("get_prop", "color_mode");
+        Result result = this.sendCommand(command);
+        String colorModeString = "";
+        if (result.checkResult()) {
+            colorMode = Integer.parseInt(result.getResultData()[0]);
+            switch (colorMode) {
+                case 1:
+                    colorModeString = "RGB";
+                    break;
+                case 2:
+                    colorModeString = "White";
+                    break;
+                case 3:
+                    colorModeString = "HSV";
+                    break;
+                default:
+                    colorModeString = "Wrong type";
+            }
+        }
+        return colorModeString;
     }
 
-    public int getColorTemperature() {
+    public int getColorTemperature() throws DeviceSocketException, ResultException {
+        YeelightCommand command = new YeelightCommand("get_prop", "ct");
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) {
+            colorTemperature = Integer.parseInt(result.getResultData()[0]);
+        }
         return colorTemperature;
     }
 
-    public int getRGBvalue() {
+    public int getRGBvalue() throws DeviceSocketException, ResultException {
+        YeelightCommand command = new YeelightCommand("get_prop", "rgb");
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) {
+            RGBvalue = Integer.parseInt(result.getResultData()[0]);
+        }
         return RGBvalue;
     }
 
-    public int getHUEvalue() {
+    public int getHUEvalue() throws DeviceSocketException, ResultException {
+        YeelightCommand command = new YeelightCommand("get_prop", "hue");
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) {
+            HUEvalue = Integer.parseInt(result.getResultData()[0]);
+        }
         return HUEvalue;
     }
 
-    public String getName() {
+    public String getName() throws DeviceSocketException, ResultException {
+        YeelightCommand command = new YeelightCommand("get_prop", "name");
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) {
+            name = result.getResultData()[0];
+        }
         return name;
     }
 
@@ -156,7 +215,7 @@ public class YeelightBulb extends Bulb {
         return duration;
     }
 
-    public Effect getEffect() {
+    public Effect getEffect() throws DeviceSocketException, ResultException {
         return effect;
     }
 
