@@ -1,6 +1,5 @@
 package com.dbogucki.bulbapi.results;
 
-import com.google.gson.annotations.Expose;
 
 public abstract class Result {
 
