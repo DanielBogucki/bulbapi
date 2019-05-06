@@ -51,15 +51,18 @@ public class YeelightBulb extends Bulb {
 
     public YeelightBulb(String ip, int port, String id, String model, String firmwareVersion, String[] support, String name) throws DeviceSocketException {
         this(ip, port);
+        this.id = id;
         this.model = model;
         this.firmwareVersion = firmwareVersion;
         this.supportedMethods = support;
+        this.name = name;
     }
 
 
     public YeelightBulb(String ip) throws DeviceSocketException {
         this(ip, 55443);
     }
+
 
     public YeelightBulb(String ip, int port) throws DeviceSocketException {
         this.socketHandler = new YeelightSocketHandler(ip, port);
@@ -69,6 +72,7 @@ public class YeelightBulb extends Bulb {
 
     protected Result readResult(int id) throws ResultException, DeviceSocketException {
         Result result;
+
         String data;
         do {
             data = this.socketHandler.readLine();
@@ -84,11 +88,10 @@ public class YeelightBulb extends Bulb {
                     throw new ResultException(exception);
                 }
             }
-
         } while (true);
     }
 
-    protected Result sendCommand(Command command) throws ResultException, DeviceSocketException {
+    protected Result sendCommand(Command command) throws DeviceSocketException {
         String jsonCommand = command.toJson() + "\r\n";
         this.socketHandler.send(jsonCommand);
         return this.readResult(command.getId());
