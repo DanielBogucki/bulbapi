@@ -8,14 +8,19 @@ import com.dbogucki.bulbapi.enums.YeelightEffect;
 import com.dbogucki.bulbapi.exceptions.DeviceSocketException;
 import com.dbogucki.bulbapi.exceptions.MethodNotSupportedException;
 import com.dbogucki.bulbapi.exceptions.ResultException;
-import com.dbogucki.bulbapi.results.NullResult;
 import com.dbogucki.bulbapi.results.Result;
 import com.dbogucki.bulbapi.sockets.YeelightSocketHandler;
 import com.dbogucki.bulbapi.utils.DataFormatter;
 import com.google.gson.JsonSyntaxException;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.dbogucki.bulbapi.utils.ValueCalc.calc;
+import static com.dbogucki.bulbapi.utils.ValueCalc.calcRGB;
+
 public class YeelightBulb extends Bulb {
-    private int id;
+    private String id;
     private String model = "unknown";
     private String firmwareVersion = "unknown";
     private String[] supportedMethods;
@@ -25,6 +30,7 @@ public class YeelightBulb extends Bulb {
     private int colorTemperature; // valid if color_Mode is 2
     private int RGBvalue; // valid if colorMode is 1
     private int HUEvalue; // valid if colorMode is 3
+    private int saturation; //valid if colorMode is 3
     private String name;
 
     private final YeelightSocketHandler socketHandler;
@@ -32,7 +38,7 @@ public class YeelightBulb extends Bulb {
     private YeelightEffect effect;
 
 
-    public YeelightBulb(String ip, int port, int id, String model, String firmwareVersion, String[] support, String name, boolean power, int bright, int colorMode, int colorTemperature, int RGBvalue, int HUEvalue) throws DeviceSocketException {
+    public YeelightBulb(String ip, int port, String id, String model, String firmwareVersion, String[] support, String name, boolean power, int bright, int colorMode, int colorTemperature, int RGBvalue, int HUEvalue, int saturation) throws DeviceSocketException {
         this(ip, port, id, model, firmwareVersion, support, name);
         this.power = power;
         this.bright = bright;
@@ -40,22 +46,25 @@ public class YeelightBulb extends Bulb {
         this.colorTemperature = colorTemperature;
         this.RGBvalue = RGBvalue;
         this.HUEvalue = HUEvalue;
+        this.saturation = saturation;
     }
 
-    public YeelightBulb(String ip, int port, int id, String model, String firmwareVersion, String[] support, String name) throws DeviceSocketException {
+    public YeelightBulb(String ip, int port, String id, String model, String firmwareVersion, String[] support, String name) throws DeviceSocketException {
         this(ip, port);
         this.model = model;
         this.firmwareVersion = firmwareVersion;
         this.supportedMethods = support;
     }
 
-    public YeelightBulb(String ip, int port) throws DeviceSocketException {
-
-        this.socketHandler = new YeelightSocketHandler(ip, port);
-    }
 
     public YeelightBulb(String ip) throws DeviceSocketException {
         this(ip, 55443);
+    }
+
+    public YeelightBulb(String ip, int port) throws DeviceSocketException {
+        this.socketHandler = new YeelightSocketHandler(ip, port);
+        this.effect = YeelightEffect.SMOOTH;
+        this.duration = 500;
     }
 
     protected Result readResult(int id) throws ResultException, DeviceSocketException {
@@ -100,17 +109,52 @@ public class YeelightBulb extends Bulb {
 
     public Result setPower(boolean power) throws ResultException, DeviceSocketException {
         String powerStr = power ? "on" : "off";
-        YeelightCommand command = new YeelightCommand("set_power", powerStr, YeelightEffect.SUDDEN, 500);
+        YeelightCommand command = new YeelightCommand("set_power", powerStr, effect, duration);
         Result result = this.sendCommand(command);
         if (result.checkResult()) this.power = power;
         return result;
     }
 
     public Result setBrightness(int value) throws ResultException, DeviceSocketException {
-        //TODO calculate value // value =
-        YeelightCommand command = new YeelightCommand("set_bright", value, YeelightEffect.SUDDEN, 500);
+        value = calc(value, 1, 100);
+        YeelightCommand command = new YeelightCommand("set_bright", value, effect, duration);
         Result result = this.sendCommand(command);
-        if (result.checkResult()) this.power = power;
+        if (result.checkResult()) this.bright = value;
+        return result;
+    }
+
+    public Result setColorTemperature(int value) throws ResultException, DeviceSocketException {
+        value = calc(value, 1700, 6500);
+        YeelightCommand command = new YeelightCommand("set_ct_abx", value, effect, duration);
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) {
+            this.colorTemperature = value;
+            this.colorMode = 2;
+        }
+        return result;
+    }
+
+    public Result setRGB(int red, int green, int blue) throws ResultException, DeviceSocketException {
+        int value = calcRGB(red, green, blue);
+        YeelightCommand command = new YeelightCommand("set_rgb", value, effect, duration);
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) {
+            this.RGBvalue = value;
+            this.colorMode = 1;
+        }
+        return result;
+    }
+
+    public Result setHSV(int hue, int sat) throws ResultException, DeviceSocketException {
+        hue = calc(hue, 0, 359);
+        sat = calc(sat, 0, 100);
+        YeelightCommand command = new YeelightCommand("set_hsv", hue, sat, effect, duration);
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) {
+            this.HUEvalue = hue;
+            this.saturation = sat;
+            this.colorMode = 3;
+        }
         return result;
     }
 
@@ -121,7 +165,20 @@ public class YeelightBulb extends Bulb {
         return result;
     }
 
-    public int getId() {
+    public Result setDefault() throws ResultException, DeviceSocketException {
+        YeelightCommand command = new YeelightCommand("set_default");
+        Result result = this.sendCommand(command);
+        return result;
+    }
+
+    public Result toggle() throws ResultException, DeviceSocketException {
+        YeelightCommand command = new YeelightCommand("toggle");
+        Result result = this.sendCommand(command);
+        if (result.checkResult()) this.power = !this.power;
+        return result;
+    }
+
+    public String getId() {
         return id;
     }
 
@@ -211,6 +268,21 @@ public class YeelightBulb extends Bulb {
         return name;
     }
 
+    public Map<String, String> getProperties(String[] properties) throws DeviceSocketException, ResultException {
+        Map map = new HashMap<String, String>();
+        YeelightCommand command = new YeelightCommand("get_prop", properties);
+        Result result = this.sendCommand(command);
+        if (result.checkResult()){
+            int i = 0;
+            for (String p : properties){
+                map.put(p, result.getResultData()[i++]);
+            }
+            //TODO update local properties
+            return map;
+        }
+        else throw new ResultException(new Exception("Bad result received"));
+    }
+
     public int getDuration() {
         return duration;
     }
@@ -228,4 +300,14 @@ public class YeelightBulb extends Bulb {
     }
 
 
+    @Override
+    public boolean equals(Object o) {
+        YeelightBulb bulb = (YeelightBulb) o;
+        return this.getIp().equals(bulb.getIp());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.getIp().hashCode();
+    }
 }

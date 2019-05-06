@@ -14,7 +14,7 @@ public class YeelightDiscoverer implements Discoverer {
     private final static String NEWLINE = "\r\n";
     private final static String SEARCH_REQUEST_ADDRESS = "239.255.255.250";
     private final static int SEARCH_REQUEST_PORT = 1982;
-    private final static int RESPONSE_TIMEOUT = 1000;
+    private final static int RESPONSE_TIMEOUT = 1500;
 
 
     @Override
@@ -46,13 +46,13 @@ public class YeelightDiscoverer implements Discoverer {
     }
 
     private static Bulb processResponse(String response) throws DeviceSocketException {
-        // TODO response validation
         String ip = null;
         int port = 0;
-        String id;
-        String model;
-        String firmware;
-        String[] capabilities;
+        String id = "";
+        String model = "";
+        String firmware = "";
+        String[] capabilities = {""};
+        String name = "";
 
         String[] lines = response.split(NEWLINE);
         for (String line : lines) {
@@ -83,9 +83,13 @@ public class YeelightDiscoverer implements Discoverer {
                 capabilities = line.substring(prefixLength).split(" ");
                 continue;
             }
+            if (line.startsWith("name:")) {
+                final int prefixLength = "name: ".length();
+                name = line.substring(prefixLength);
+            }
         }
 
-        Bulb bulb = new YeelightBulb(ip, port);
+        Bulb bulb = new YeelightBulb(ip, port, id, model, firmware, capabilities, name);
 
         return bulb;
     }
