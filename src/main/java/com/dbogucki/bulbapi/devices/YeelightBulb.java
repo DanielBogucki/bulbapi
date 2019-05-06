@@ -91,7 +91,7 @@ public class YeelightBulb extends Bulb {
         } while (true);
     }
 
-    protected Result sendCommand(Command command) throws DeviceSocketException {
+    protected Result sendCommand(Command command) throws ResultException, DeviceSocketException {
         String jsonCommand = command.toJson() + "\r\n";
         this.socketHandler.send(jsonCommand);
         return this.readResult(command.getId());
