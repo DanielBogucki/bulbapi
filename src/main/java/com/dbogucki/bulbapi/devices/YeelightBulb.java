@@ -58,17 +58,17 @@ public class YeelightBulb extends Bulb {
         this.name = name;
     }
 
-
     public YeelightBulb(String ip) throws DeviceSocketException {
         this(ip, 55443);
     }
-
 
     public YeelightBulb(String ip, int port) throws DeviceSocketException {
         this.socketHandler = new YeelightSocketHandler(ip, port);
         this.effect = YeelightEffect.SMOOTH;
         this.duration = 500;
     }
+
+
 
     protected Result readResult(int id) throws ResultException, DeviceSocketException {
         Result result;

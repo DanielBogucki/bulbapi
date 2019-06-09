@@ -7,7 +7,7 @@ import com.dbogucki.bulbapi.results.Result;
 
 public abstract class Bulb {
 
-    protected Bulb() {
+     Bulb() {
     }
 
     public abstract String getIp();
@@ -27,15 +27,10 @@ public abstract class Bulb {
     public abstract Result toggle() throws ResultException, DeviceSocketException;
 
     public abstract boolean getPower() throws DeviceSocketException, ResultException;
-
     public abstract int getBright() throws DeviceSocketException, ResultException;
-
     public abstract String getColorMode() throws DeviceSocketException, ResultException;
-
     public abstract int getColorTemperature() throws DeviceSocketException, ResultException;
-
     public abstract int getRGBvalue() throws DeviceSocketException, ResultException;
-
     public abstract int getHUEvalue() throws DeviceSocketException, ResultException;
 
     public abstract String getName() throws DeviceSocketException, ResultException;
